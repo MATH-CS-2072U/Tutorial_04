@@ -17,6 +17,7 @@ def LUP(A):
     L = np.identity(n)                            # initialize L and P
     P = np.identity(n)
     ok = 1                                        # by default, we assume the matrix is non-singular
+    sig = 1
     for j in range(1,n):                          # loop over columns
         s = np.argmax(abs(U[j-1:n,j-1])) + j      # find pivot element
         if abs(U[s-1,j-1]) < small:               # check if pivot is too close to zero
@@ -24,16 +25,18 @@ def LUP(A):
             ok = 0
             break                                 # matrix is too close to singular, exit with error flag up
         if s-1 != j-1:                            # if the pivot is not on the diagonal...
+            sig *=-1
             U = swap(U,s-1,j-1,n)                 # swap rows of U
-            if k>1:                               # swap rows of L left of diagonal element
+            if j>1:                               # swap rows of L left of diagonal element
                 L = swap(L,s-1,j-1,j-1)
             P = swap(P,s-1,j-1,n)                 # swap rows of P
-        for i in range(j+1,n+1):                  # Gauss elimination of rows below pivot
-            L[i-1,k-1] = U[i-1,j-1]/U[j-1,j-1]
-            for i in range(j,n+1):
-                U[i-1,i-1]=U[j-1,i-1] - L[j-1,k-1]*U[k-1,i-1]
+        for i in range(j+1, n+1):                 # Gauss elimination of rows below pivot
+            L[i-1, j-1] = U[i-1, j-1] / U[j-1, j-1]
+            for k in range(j, n+1):               # update row i across columns j..n
+                U[i-1, k-1] = U[i-1, k-1] - L[i-1, j-1] * U[j-1, k-1]
+
                 # fix indices!
-    return L,U,P,ok
+    return L,U,P,sig,ok
 
 def swap(M,i,j,k):
 # Swap rows i and j from column 0 up to (but not including) k.
